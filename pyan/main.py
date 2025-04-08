@@ -159,7 +159,10 @@ def main(cli_args=None):
 
     known_args, unknown_args = parser.parse_known_args(cli_args)
 
-    filenames = [fn2 for fn in unknown_args for fn2 in glob(fn, recursive=True)]
+    filenames = []
+    for fn in unknown_args:
+        for fn2 in glob(fn, recursive=True):
+            filenames.append(os.path.abspath(fn2))
 
     # determine root
     if known_args.root is not None:
@@ -203,7 +206,9 @@ def main(cli_args=None):
         handler = logging.FileHandler(known_args.logname)
         logger.addHandler(handler)
 
-    v = CallGraphVisitor(filenames, logger=logger, root=root)
+    if root:
+        root = os.path.abspath(root)
+    v = CallGraphVisitor(filenames, root=root, logger=logger)
 
     if known_args.function or known_args.namespace:
 
@@ -242,3 +247,8 @@ def main(cli_args=None):
 
 if __name__ == "__main__":
     main()
+
+"""
+pyan3 ./pyan/*.py --uses --no-defines --colored --grouped --annotated --svg >myuses.svg
+
+"""
